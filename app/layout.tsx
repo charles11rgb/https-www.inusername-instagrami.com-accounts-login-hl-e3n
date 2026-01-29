@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "tiktok.com/tracy-chalot",
+  title: "https://www.instagram.com/accounts/login/?hl=en",
   description: "posted on jan 11 2026",
 };
 
