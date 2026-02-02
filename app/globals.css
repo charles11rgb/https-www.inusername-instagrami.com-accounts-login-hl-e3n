@@ -14,3 +14,57 @@
 }
 
 /* ... rest of your CSS ... */
+/* Add this to your existing globals.css */
+
+/* Prevent text size adjustment on mobile */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Prevent tap highlight on all elements */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve mobile scrolling */
+body {
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Better touch handling for buttons and inputs */
+button,
+input,
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Prevent zoom on input focus in iOS */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles for mobile */
+:focus {
+  outline: none;
+}
+
+/* Remove default button styles on iOS */
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+button {
+  -webkit-appearance: none;
+  border-radius: 0;
+}
